@@ -40,7 +40,6 @@ spec:
           password=$(cat /gitops-auth-secret/password)
           if test -f /gitops-auth-secret/username ; then
             username=$(cat /gitops-auth-secret/username)
-            echo "https://${username}:${password})@${hostname}" > "${HOME}/.git-credentials"
             origin_with_auth=https://${username}:${password}@${remote_without_protocol}.git
           else
             origin_with_auth=https://${password}@${remote_without_protocol}.git
