@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # helps with debugging
-DATA_BUNDLE_REPO="${DATA_BUNDLE_REPO:-quay.io/redhat-appstudio-tekton-catalog/data-acceptable-bundles}"
+DATA_BUNDLE_REPO="${DATA_BUNDLE_REPO:-quay.io/konflux-ci/tekton-catalog/data-acceptable-bundles}"
 mapfile -t BUNDLES < <(cat "$@")
 
 # store a list of changed task files
