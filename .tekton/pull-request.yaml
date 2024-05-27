@@ -5,7 +5,7 @@ metadata:
   name: build-definitions-pull-request
   annotations:
     pipelinesascode.tekton.dev/on-cel-expression: (event == "pull_request" && target_branch == "main" && ( !has(body.pull_request) || !body.pull_request.draft) ) || (event == "push" && target_branch.startsWith("gh-readonly-queue/main/"))
-    pipelinesascode.tekton.dev/task: "[task/git-clone/0.1/git-clone.yaml, .tekton/tasks/buildah.yaml, .tekton/tasks/yaml-lint.yaml, .tekton/tasks/e2e-test.yaml, task/sast-snyk-check/0.1/sast-snyk-check.yaml]"
+    pipelinesascode.tekton.dev/task: "[task/git-clone/0.1/git-clone.yaml, .tekton/tasks/buildah.yaml, .tekton/tasks/yaml-lint.yaml, task/sast-snyk-check/0.1/sast-snyk-check.yaml]"
     pipelinesascode.tekton.dev/task-2: "yaml-lint"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
@@ -64,65 +64,11 @@ spec:
           - yaml-lint-check
         params:
           - name: IMAGE
-            value: quay.io/konflux-ci/pull-request-builds:build-definitions-utils-{{revision}}
+            value: quay.io/acmiel-test/pull-request-builds:build-definitions-utils-{{revision}}
           - name: CONTEXT
             value: appstudio-utils
         taskRef:
           name: buildah
-        workspaces:
-          - name: source
-            workspace: workspace
-      - name: check-partner-tasks
-        runAfter:
-          - build-container
-        taskSpec:
-          steps:
-            - name: check-task-structure
-              image: quay.io/konflux-ci/pull-request-builds:build-definitions-utils-{{revision}}
-              # per https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
-              # the cluster will set imagePullPolicy to IfNotPresent
-              workingDir: $(workspaces.source.path)/source
-              script: |
-                #!/usr/bin/env bash
-                ./hack/check-partner-tasks.sh > partner-tasks.out
-                echo $? > partner-tasks-code.out
-                cat partner-tasks.out
-            - name: create-comment
-              image: quay.io/redhat-appstudio/github-app-token@sha256:b4f2af12e9beea68055995ccdbdb86cfe1be97688c618117e5da2243dc1da18e
-              # per https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
-              # the cluster will set imagePullPolicy to IfNotPresent
-              volumeMounts:
-                - name: infra-deployments-pr-creator
-                  mountPath: /secrets/deploy-key
-              workingDir: $(workspaces.source.path)/source
-              env:
-                - name: GITHUBAPP_KEY_PATH
-                  value: /secrets/deploy-key/private-key
-                - name: GITHUBAPP_APP_ID
-                  value: "305606"
-                - name: GITHUBAPP_INSTALLATION_ID
-                  value: "35269675"
-                - name: GITHUB_API_URL
-                  value: https://api.github.com
-                - name: REPO_OWNER
-                  value: "{{repo_owner}}"
-                - name: REPO_NAME
-                  value: "{{repo_name}}"
-                - name: PULL_REQUEST_NUMBER
-                  value: "{{pull_request_number}}"
-              script: |
-                #!/usr/bin/env bash
-                exit_code=$(cat partner-tasks-code.out)
-                if [ $exit_code != "0" ]; then
-                  .tekton/scripts/github-update-comment.py partner-tasks.out
-                fi
-                exit $exit_code
-          workspaces:
-            - name: source
-          volumes:
-            - name: infra-deployments-pr-creator
-              secret:
-                secretName: infra-deployments-pr-creator
         workspaces:
           - name: source
             workspace: workspace
@@ -145,44 +91,28 @@ spec:
               type: string
           steps:
             - name: build-bundles
-              image: quay.io/konflux-ci/pull-request-builds:build-definitions-utils-{{revision}}
+              image: quay.io/acmiel-test/pull-request-builds:build-definitions-utils-{{revision}}
               # per https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
               # the cluster will set imagePullPolicy to IfNotPresent
               workingDir: $(workspaces.source.path)/source
               script: |
                 #!/usr/bin/env bash
-                QUAY_NAMESPACE=konflux-ci/tekton-catalog \
+                QUAY_NAMESPACE=acmiel-test/tekton-catalog \
                 TEST_REPO_NAME=pull-request-builds \
                 BUILD_TAG=$(params.revision) \
                 SKIP_BUILD=1 \
-                INSTALL_BUNDLE_NS=$(params.e2e_test_namespace) \
+                SKIP_INSTALL=1 \
                 ENABLE_SOURCE_BUILD=1 \
                 hack/build-and-push.sh
           workspaces:
             - name: source
-      - name: e2e-tests
-        params:
-          - name: e2e_test_namespace
-            value: $(params.e2e_test_namespace)
-          - name: app_suffix
-            value: "ref-{{ revision }}"
-          - name: ec_pipelines_repo_url
-            value: "{{ source_url }}"
-          - name: ec_pipelines_repo_revision
-            value: "{{ revision }}"
-        runAfter:
-          - build-bundles
-        taskRef:
-          name: e2e-test
-        # Added a timeout due to https://issues.redhat.com/browse/STONEBLD-2265
-        timeout: "2h"
       - name: check-task-pipeline-repo-existence
         runAfter:
-          - build-bundles
+          - build-container
         taskSpec:
           steps:
             - name: fail-when-repo-is-missed
-              image: registry.redhat.io/openshift4/ose-tools-rhel8:v4.12@sha256:2098dc35cf999984ffb2a0aebd4f8bb1b52f1e2c308efef90831a3660c75c358
+              image: quay.io/acmiel-test/pull-request-builds:build-definitions-utils-{{revision}}
               # per https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
               # the cluster will set imagePullPolicy to IfNotPresent
               workingDir: $(workspaces.source.path)/source
@@ -231,26 +161,6 @@ spec:
         workspaces:
           - name: source
             workspace: workspace
-    finally:
-      - name: e2e-cleanup
-        params:
-          - name: e2e_test_namespace
-            value: $(params.e2e_test_namespace)
-        taskSpec:
-          params:
-            - name: e2e_test_namespace
-              type: string
-          steps:
-            - name: e2e-cleanup
-              image: registry.redhat.io/openshift4/ose-cli:v4.12@sha256:0d21299d2adfa3cb74562c4dffbedd3b107fffac3a2a537f14770088abd4671f
-              # per https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
-              # the cluster will set imagePullPolicy to IfNotPresent
-              script: |
-                #!/usr/bin/env bash
-                # Perform cleanup of resources created by gitops service
-                oc delete --ignore-not-found deployment --all -n $(params.e2e_test_namespace)
-                oc delete --ignore-not-found eventlisteners --all -n $(params.e2e_test_namespace)
-  # Added a timeout due to https://issues.redhat.com/browse/STONEBLD-2265
   timeouts:
     pipeline: "2h"
   workspaces:

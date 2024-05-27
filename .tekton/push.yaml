@@ -4,8 +4,7 @@ kind: PipelineRun
 metadata:
   name: build-definitions-bundle-push
   annotations:
-    pipelinesascode.tekton.dev/on-event: "push"
-    pipelinesascode.tekton.dev/on-target-branch: "main"
+    pipelinesascode.tekton.dev/on-cel-expression: (event == "pull_request" && target_branch == "main")
     pipelinesascode.tekton.dev/task: "[task/update-infra-deployments/0.1/update-infra-deployments.yaml, task/git-clone/0.1/git-clone.yaml, .tekton/tasks/buildah.yaml, task/slack-webhook-notification/0.1/slack-webhook-notification.yaml, .tekton/tasks/ec-checks.yaml]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
@@ -67,7 +66,7 @@ spec:
       - name: build-container
         params:
           - name: IMAGE
-            value: quay.io/konflux-ci/appstudio-utils:{{ revision }}
+            value: quay.io/acmiel-test/appstudio-utils:{{ revision }}
           - name: CONTEXT
             value: appstudio-utils
         runAfter:
@@ -93,14 +92,14 @@ spec:
               type: string
           steps:
             - name: build-bundles
-              image: quay.io/konflux-ci/appstudio-utils:{{ revision }}
+              image: quay.io/acmiel-test/appstudio-utils:{{ revision }}
               # per https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
               # the cluster will set imagePullPolicy to IfNotPresent
               workingDir: $(workspaces.source.path)/source
               command: ["./hack/build-and-push.sh"]
               env:
                 - name: QUAY_NAMESPACE
-                  value: redhat-appstudio-tekton-catalog
+                  value: acmiel-rhtap
                 - name: BUILD_TAG
                   value: "$(params.revision)"
                 - name: SKIP_BUILD
@@ -118,7 +117,7 @@ spec:
           volumes:
           - name: quay-secret
             secret:
-              secretName: redhat-appstudio-tekton-catalog-build-definitions-pull-secret
+              secretName: acmiel-rhtap-build-definitions-pull-secret
           workspaces:
             - name: source
 
@@ -137,14 +136,14 @@ spec:
               type: string
           steps:
             - name: build-bundles
-              image: quay.io/konflux-ci/appstudio-utils:{{ revision }}
+              image: quay.io/acmiel-test/appstudio-utils:{{ revision }}
               # per https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
               # the cluster will set imagePullPolicy to IfNotPresent
               workingDir: $(workspaces.source.path)/source
               command: ["./hack/build-and-push.sh"]
               env:
                 - name: QUAY_NAMESPACE
-                  value: konflux-ci/tekton-catalog
+                  value: acmiel-test/tekton-catalog
                 - name: BUILD_TAG
                   value: "$(params.revision)"
                 - name: SKIP_BUILD
@@ -172,8 +171,8 @@ spec:
         taskRef:
           name: update-infra-deployments
 
-      # Note: pushes to redhat-appstudio-tekton-catalog, but contains the bundles
-      # from both redhat-appstudio-tekton-catalog and konflux-ci/tekton-catalog
+      # Note: pushes to acmiel-rhtap, but contains the bundles
+      # from both acmiel-rhtap and acmiel-test/tekton-catalog
       - name: build-acceptable-bundles-redhat-appstudio
         runAfter:
           - build-bundles-redhat-appstudio
@@ -192,14 +191,14 @@ spec:
           volumes:
           - name: quay-secret
             secret:
-              secretName: redhat-appstudio-tekton-catalog-build-definitions-pull-secret
+              secretName: acmiel-rhtap-build-definitions-pull-secret
           steps:
             - name: build-bundles
-              image: quay.io/konflux-ci/appstudio-utils:{{ revision }}
+              image: quay.io/acmiel-test/appstudio-utils:{{ revision }}
               workingDir: $(workspaces.artifacts.path)/source
               env:
               - name: DATA_BUNDLE_REPO
-                value: quay.io/redhat-appstudio-tekton-catalog/data-acceptable-bundles
+                value: quay.io/acmiel-rhtap/data-acceptable-bundles
               - name: REVISION
                 value: "$(params.revision)"
               - name: GIT_URL
@@ -215,8 +214,8 @@ spec:
                   subPath: .dockerconfigjson
                   name: quay-secret
 
-      # Note: pushes to konflux-ci/tekton-catalog, but contains the bundles
-      # from both redhat-appstudio-tekton-catalog and konflux-ci/tekton-catalog
+      # Note: pushes to acmiel-test/tekton-catalog, but contains the bundles
+      # from both acmiel-rhtap and acmiel-test/tekton-catalog
       - name: build-acceptable-bundles-konflux-ci
         runAfter:
           - build-bundles-redhat-appstudio
@@ -234,7 +233,7 @@ spec:
               description: Same as 'artifacts', but for tasks that push to the old redhat-appstudio location.
           steps:
             - name: build-bundles
-              image: quay.io/konflux-ci/appstudio-utils:{{ revision }}
+              image: quay.io/acmiel-test/appstudio-utils:{{ revision }}
               workingDir: $(workspaces.artifacts.path)/source
               env:
               - name: REVISION
