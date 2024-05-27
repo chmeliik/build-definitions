@@ -10,25 +10,48 @@
 # be controlled by `$COLLECT` which can be set to `git` or `oci`
 #
 # Parameters via environment variables:
-# COLLECT        - can be set to `oci` or `git` (defaults to both), what to
-#                  resolve
-# INPUT_IMAGE    - Conftest OCI bundle containing the trusted tasks list, defaults
-#                  to:
-#                  `quay.io/redhat-appstudio-tekton-catalog/data-acceptable-bundles:latest`
-# OUTPUT_IMAGE   - Conftest OCI bundle to write the trusted task list to, defaults
-#                  to `$INPUT_IMAGE`
-# QUAY_NAMESPACE - Quay namespace to query for Task bundles (defaults to
-#                  `redhat-appstudio-tekton-catalog`)
+# COLLECT         - can be set to `oci` or `git` (defaults to both), what to
+#                   resolve
+# INPUT_IMAGE     - Conftest OCI bundle containing the trusted tasks list, defaults
+#                   to:
+#                   `quay.io/redhat-appstudio-tekton-catalog/data-acceptable-bundles:latest`
+# OUTPUT_IMAGE    - Conftest OCI bundle to write the trusted task list to, defaults
+#                   to `$INPUT_IMAGE`
+# QUAY_NAMESPACES - Quay namespaces to query for Task bundles (defaults to
+#                   `redhat-appstudio-tekton-catalog konflux-ci/tekton-catalog`)
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
 mapfile -td ' ' COLLECT < <(echo -n "${COLLECT:-git oci}")
-INPUT_IMAGE=${INPUT_IMAGE:-quay.io/redhat-appstudio-tekton-catalog/data-acceptable-bundles:latest}
+mapfile -td ' ' QUAY_NAMESPACES < <(
+    echo -n "${QUAY_NAMESPACES:-'redhat-appstudio-tekton-catalog konflux-ci/tekton-catalog'}"
+)
+
+INPUT_IMAGE=${INPUT_IMAGE:-quay.io/konflux-ci/tekton-catalog/data-acceptable-bundles:latest}
 OUTPUT_IMAGE=${OUTPUT_IMAGE:-$INPUT_IMAGE}
 GIT_REPOSITORY=git+https://github.com/konflux-ci/build-definitions.git
-QUAY_NAMESPACE=${QUAY_NAMESPACE:-redhat-appstudio-tekton-catalog}
+
+function list_tasks() {
+    local full_namespace=$1
+    # The Quay API only supports filtering by e.g. "konflux-ci", not by "konflux-ci/tekton-catalog"
+    local toplevel_namespace=${full_namespace%%/*}
+
+    curl -sSL "https://quay.io/api/v1/repository?namespace=${toplevel_namespace}&public=true" -H 'Accept: application/json' |
+        jq --arg full_namespace "$full_namespace" -r '
+            .repositories[]
+            | "\(.namespace)/\(.name)"
+            | select(test("^\($full_namespace)/task-[^/]*$"))
+            | "quay.io/\(.)"
+        '
+}
+
+function list_tasks_in_all_namespaces() {
+    for namespace in "${QUAY_NAMESPACES[@]}"; do
+        list_tasks "$namespace"
+    done
+}
 
 HACK_DIR="$(dirname "${BASH_SOURCE[0]}")"
 
@@ -55,10 +78,7 @@ for c in "${COLLECT[@]}"; do
       ;;
     oci)
       echo -n Resolving OCI Tasks bundles
-      for repository in $(
-        curl -sSL "https://quay.io/api/v1/repository?namespace=${QUAY_NAMESPACE}&public=true" -H 'Accept: application/json' |
-          jq -r '.repositories.[].name | select(startswith("task-")) | "quay.io/'"${QUAY_NAMESPACE}"'/\(.)"'
-      ); do
+      for repository in $(list_tasks_in_all_namespaces); do
         mapfile -t refs < <(
           skopeo list-tags docker://"${repository}" |
             jq --arg repository "${repository}" -r '.Tags[] | select(test("^(\\d+)(\\.\\d)*$")) | "\($repository):\(.)"'
