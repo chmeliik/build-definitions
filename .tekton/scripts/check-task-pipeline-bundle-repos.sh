@@ -8,8 +8,8 @@ SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd "$SCRIPTDIR/../.."
 
 CATALOG_NAMESPACES=(
-    redhat-appstudio-tekton-catalog
-    konflux-ci/tekton-catalog
+    acmiel-rhtap
+    acmiel-test/tekton-catalog
 )
 
 locate_bundle_repo() {
@@ -66,7 +66,7 @@ done
 
 if [ -n "$has_missing_repo" ]; then
     echo "Please contact Build team - #forum-stonesoup-build that the missing repos should be created in:"
-    echo "- https://quay.io/organization/redhat-appstudio-tekton-catalog"
+    echo "- https://quay.io/organization/acmiel-rhtap"
     echo "- https://quay.io/organization/konflux-ci"
     exit 1
 else

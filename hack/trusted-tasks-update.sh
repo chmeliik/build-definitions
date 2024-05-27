@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Resolves all tasks from the `/task` directory of this repository and any Task
 # bundles in the `$QUAY_NAMESPACE` quay.io namespace (defaults to
-# `redhat-appstudio-tekton-catalog`) and runs `ec track bundle` with those git
+# `acmiel-rhtap`) and runs `ec track bundle` with those git
 # and image references in order to catalogue the latest versions in the trusted
 # tasks list in `$INPUT_IMAGE` written to `$OUTPUT_IMAGE` (both default to
-# `quay.io/redhat-appstudio-tekton-catalog/data-acceptable-bundles:latest`).
+# `quay.io/acmiel-rhtap/data-acceptable-bundles:latest`).
 #
 # By default both git and image references are collected, what is collected can
 # be controlled by `$COLLECT` which can be set to `git` or `oci`
@@ -14,11 +14,11 @@
 #                   resolve
 # INPUT_IMAGE     - Conftest OCI bundle containing the trusted tasks list, defaults
 #                   to:
-#                   `quay.io/redhat-appstudio-tekton-catalog/data-acceptable-bundles:latest`
+#                   `quay.io/acmiel-rhtap/data-acceptable-bundles:latest`
 # OUTPUT_IMAGE    - Conftest OCI bundle to write the trusted task list to, defaults
 #                   to `$INPUT_IMAGE`
 # QUAY_NAMESPACES - Quay namespaces to query for Task bundles (defaults to
-#                   `redhat-appstudio-tekton-catalog konflux-ci/tekton-catalog`)
+#                   `acmiel-rhtap acmiel-test/tekton-catalog`)
 
 set -o errexit
 set -o nounset
@@ -26,16 +26,16 @@ set -o pipefail
 
 mapfile -td ' ' COLLECT < <(echo -n "${COLLECT:-git oci}")
 mapfile -td ' ' QUAY_NAMESPACES < <(
-    echo -n "${QUAY_NAMESPACES:-'redhat-appstudio-tekton-catalog konflux-ci/tekton-catalog'}"
+    echo -n "${QUAY_NAMESPACES:-'acmiel-rhtap acmiel-test/tekton-catalog'}"
 )
 
-INPUT_IMAGE=${INPUT_IMAGE:-quay.io/konflux-ci/tekton-catalog/data-acceptable-bundles:latest}
+INPUT_IMAGE=${INPUT_IMAGE:-quay.io/acmiel-test/tekton-catalog/data-acceptable-bundles:latest}
 OUTPUT_IMAGE=${OUTPUT_IMAGE:-$INPUT_IMAGE}
 GIT_REPOSITORY=git+https://github.com/konflux-ci/build-definitions.git
 
 function list_tasks() {
     local full_namespace=$1
-    # The Quay API only supports filtering by e.g. "konflux-ci", not by "konflux-ci/tekton-catalog"
+    # The Quay API only supports filtering by e.g. "konflux-ci", not by "acmiel-test/tekton-catalog"
     local toplevel_namespace=${full_namespace%%/*}
 
     curl -sSL "https://quay.io/api/v1/repository?namespace=${toplevel_namespace}&public=true" -H 'Accept: application/json' |

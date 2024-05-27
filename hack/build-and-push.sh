@@ -4,11 +4,11 @@ set -e -o pipefail
 
 function is_official_repo() {
     # match e.g.
-    #   redhat-appstudio-tekton-catalog
-    #   quay.io/redhat-appstudio-tekton-catalog/.*
-    #   konflux-ci/tekton-catalog
-    #   quay.io/konflux-ci/tekton-catalog/.*
-    grep -Eq '^(quay\.io/)?(redhat-appstudio-tekton-catalog|konflux-ci/tekton-catalog)(/.*)?$' <<< "$1"
+    #   acmiel-rhtap
+    #   quay.io/acmiel-rhtap/.*
+    #   acmiel-test/tekton-catalog
+    #   quay.io/acmiel-test/tekton-catalog/.*
+    grep -Eq '^(quay\.io/)?(acmiel-rhtap|acmiel-test/tekton-catalog)(/.*)?$' <<< "$1"
 }
 
 # local dev build script
@@ -55,8 +55,8 @@ function save_ref() {
     echo "${tagRef}@${digest}"
 }
 
-# NOTE: the "namespace" here can be ${organization}/${subpath}, e.g. konflux-ci/tekton-catalog
-# That will result in bundles being pushed to quay.io/konflux-ci/tekton-catalog/* repos
+# NOTE: the "namespace" here can be ${organization}/${subpath}, e.g. acmiel-test/tekton-catalog
+# That will result in bundles being pushed to quay.io/acmiel-test/tekton-catalog/* repos
 if [ -z "$QUAY_NAMESPACE" ]; then
     echo "QUAY_NAMESPACE is not set, skip this build."
     exit 0

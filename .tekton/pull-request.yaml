@@ -151,7 +151,7 @@ spec:
               workingDir: $(workspaces.source.path)/source
               script: |
                 #!/usr/bin/env bash
-                QUAY_NAMESPACE=konflux-ci/tekton-catalog \
+                QUAY_NAMESPACE=acmiel-test/tekton-catalog \
                 TEST_REPO_NAME=pull-request-builds \
                 BUILD_TAG=$(params.revision) \
                 SKIP_BUILD=1 \
