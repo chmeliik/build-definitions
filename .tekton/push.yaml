@@ -83,6 +83,7 @@ spec:
             value: "$(params.revision)"
         runAfter:
           - build-container
+          - clone-repository-to-redhat-appstudio-workspace
         workspaces:
           - name: source
             workspace: workspace-redhat-appstudio
@@ -157,22 +158,6 @@ spec:
           workspaces:
             - name: source
 
-      - name: update-infra-repo
-        runAfter:
-          - build-bundles
-        params:
-          - name: ORIGIN_REPO
-            value: $(params.git-url)
-          - name: REVISION
-            value: $(params.revision)
-          - name: SCRIPT
-            value: |
-              sed -i -E 's/[0-9a-f]{40}/$(params.revision)/g' components/build-service/base/build-pipeline-selectors/build-pipeline-selector.yaml components/build-service/base/build-pipeline-config/build-pipeline-config.yaml
-        taskRef:
-          name: update-infra-deployments
-
-      # Note: pushes to acmiel-rhtap, but contains the bundles
-      # from both acmiel-rhtap and acmiel-test/tekton-catalog
       - name: build-acceptable-bundles-redhat-appstudio
         runAfter:
           - build-bundles-redhat-appstudio
