@@ -1,5 +1,5 @@
 ---
-apiVersion: tekton.dev/v1
+apiVersion:  tekton.dev/v1
 kind: Task
 metadata:
   name: provision-env-with-ephemeral-namespace
@@ -26,13 +26,13 @@ spec:
         set -o pipefail
 
         cat <<EOF > space_request.yaml
-        apiVersion: toolchain.dev.openshift.com/v1alpha1
+        apiVersion:  toolchain.dev.openshift.com/v1alpha1
         kind: SpaceRequest
         metadata:
           generateName: task-spacerequest-
           namespace: $KONFLUXNAMESPACE
           ownerReferences:
-          - apiVersion: tekton.dev/v1
+          - apiVersion:  tekton.dev/v1
             kind: PipelineRun
             name: $PIPELINERUN_NAME
             uid: $PIPELINERUN_UID
