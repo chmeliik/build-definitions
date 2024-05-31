@@ -1,0 +1,19 @@
+name: Checkton
+on:
+  pull_request:
+    branches: [main, test-checkton]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+        with:
+          # Differential checkton requires full git history
+          fetch-depth: 0
+
+      - id: checkton
+        name: Checkton
+        uses: chmeliik/checkton@main
