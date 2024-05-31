@@ -16,4 +16,4 @@ jobs:
 
       - id: checkton
         name: Checkton
-        uses: chmeliik/checkton@main
+        uses: chmeliik/checkton@test
