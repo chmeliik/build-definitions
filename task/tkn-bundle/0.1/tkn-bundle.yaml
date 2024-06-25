@@ -39,7 +39,7 @@ spec:
     - name: TASK_FILE
       value: tekton_task_files
   steps:
-  - image: quay.io/redhat-appstudio/konflux-test:latest@sha256:54d49b37c9a2e280d42961a57e4f7a16c171d6b065559f1329b548db85300bea
+  - image: quay.io/redhat-appstudio/konflux-test:latest@sha256:75d3e0ada1d07511e6b9342398929fe2690367b33142bf99ecad7dc3bccc3847
     name: modify-task-files
     env:
     - name: CONTEXT
