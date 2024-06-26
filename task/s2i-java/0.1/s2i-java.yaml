@@ -128,7 +128,7 @@ spec:
       container=$(buildah from --pull-never $IMAGE)
       buildah mount $container | tee /workspace/container_path
       echo $container > /workspace/container_name
-    image: registry.access.redhat.com/ubi9/buildah:9.3-12@sha256:3b11aae36f6c762e01731952ee6fb8e89c41660ce410e4c30d0bfc6496bca93c
+    image: registry.access.redhat.com/ubi9/buildah:9.4-8@sha256:dd18167cb103d83898ee0af88a9403fd4aa6aea85a2474f1012dfde7c08ccc74
     name: build
     env:
     - name: COMMIT_SHA
@@ -179,7 +179,7 @@ spec:
       name: varlibcontainers
     securityContext:
       runAsUser: 0
-  - image: registry.access.redhat.com/ubi9/python-39:1-172.1712567222@sha256:c96f839e927c52990143df4efb2872946fcd5de9e1ed2014947bb2cf3084c27a
+  - image: registry.access.redhat.com/ubi9/python-39:1-186@sha256:5e280686bdb36e2317118f93c3de9e59ce2171dce69a3ddaf241399f576b367b
     # per https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
     # the cluster will set imagePullPolicy to IfNotPresent
     name: merge-sboms
@@ -225,7 +225,7 @@ spec:
     securityContext:
       runAsUser: 0
 
-  - image: registry.access.redhat.com/ubi9/buildah:9.3-12@sha256:3b11aae36f6c762e01731952ee6fb8e89c41660ce410e4c30d0bfc6496bca93c
+  - image: registry.access.redhat.com/ubi9/buildah:9.4-8@sha256:dd18167cb103d83898ee0af88a9403fd4aa6aea85a2474f1012dfde7c08ccc74
     # default above is image digest specific
     name: inject-sbom-and-push
     computeResources: {}
