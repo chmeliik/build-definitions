@@ -25,7 +25,7 @@ spec:
 
   steps:
     - name: init
-      image: registry.access.redhat.com/ubi9/skopeo:9.4@sha256:23557ecf3de07618968affb59adfb3db80336b976501032b5da9e4e92b943776
+      image: registry.access.redhat.com/ubi9/skopeo:9.4-8@sha256:f155c5bd13e9443134b8aa936edb43406e8f0160cc507e470a5b11296abfc782
       env:
         - name: IMAGE_URL
           value: $(params.image-url)
