@@ -39,7 +39,7 @@ spec:
     description: Digest-pinned image reference to the Dockerfile image.
   steps:
   - name: push
-    image: quay.io/konflux-ci/oras:latest@sha256:a3e87dcdfa78098e75cd43034701df50f479e3f5f0fb3171179dbe2e280dbada
+    image: quay.io/konflux-ci/oras:latest@sha256:b7e810730d97fe862826a048773a7539e469453df3681fd22de9754722266c69
     workingDir: $(workspaces.workspace.path)
     env:
     - name: IMAGE
