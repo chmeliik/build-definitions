@@ -1,7 +1,7 @@
 name: Checkton
 "on":
   pull_request:
-    branches: [main]
+    branches: [testmain]
 
 jobs:
   lint:
@@ -16,7 +16,9 @@ jobs:
 
       - name: Run Checkton
         id: checkton
-        uses: chmeliik/checkton@v0.3.0
+        uses: chmeliik/checkton@mergebase
+        env:
+          GITHUB: ${{ toJson(github) }}
         with:
           # Set to false when re-enabling SARIF uploads
           fail-on-findings: true

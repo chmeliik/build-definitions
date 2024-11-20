@@ -28,6 +28,8 @@ spec:
           subprocess_timeout: 3600
     ```
 
+    foo
+
     [available configuration parameters]: https://github.com/containerbuildsystem/cachi2?tab=readme-ov-file#available-configuration-parameters
   params:
   - description: Configures project packages that will have their dependencies prefetched.
