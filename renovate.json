@@ -6,7 +6,10 @@
   "dependencyDashboard": false,
   "prConcurrentLimit": 20,
   "tekton": {
-    "fileMatch": ["\\.yaml$", "\\.yml$"],
+    "fileMatch": [
+      "\\.yaml$",
+      "\\.yml$"
+    ],
     "includePaths": [
       ".tekton/**",
       "task/**",
@@ -30,7 +33,44 @@
         "registry.access.redhat.com/rh-syft-tech-preview/syft-rhel9"
       ],
       "groupName": "build",
-      "reviewers": ["mmorhun", "tkdchen", "rcerven", "mkosiarc", "brunoapimentel", "chmeliik"]
+      "matchFileNames": [
+        "task/acs-deploy-check/**",
+        "task/acs-image-check/**",
+        "task/acs-image-scan/**",
+        "task/apply-tags/**",
+        "task/build-image-index/**",
+        "task/build-image-manifest/**",
+        "task/buildah/**",
+        "task/buildah-10gb/**",
+        "task/buildah-20gb/**",
+        "task/buildah-24gb/**",
+        "task/buildah-6gb/**",
+        "task/buildah-8gb/**",
+        "task/buildah-min/**",
+        "task/buildah-oci-ta/**",
+        "task/buildah-remote/**",
+        "task/buildah-remote-oci-ta/**",
+        "task/buildah-rhtap/**",
+        "task/download-sbom-from-url-in-attestation/**",
+        "task/gather-deploy-images/**",
+        "task/git-clone/**",
+        "task/git-clone-oci-ta/**",
+        "task/init/**",
+        "task/push-dockerfile/**",
+        "task/push-dockerfile-oci-ta/**",
+        "task/show-sbom/**",
+        "task/show-sbom-rhdh/**",
+        "task/slack-webhook-notification/**",
+        "task/source-build/**",
+        "task/source-build-oci-ta/**",
+        "task/summary/**",
+        "task/update-deployment/**",
+        "task/update-infra-deployments/**",
+        "task/upload-sbom-to-trustification/**",
+        "task/prefetch-dependencies/**",
+        "task/prefetch-dependencies-oci-ta/**",
+        "task/generate-labels/**"
+      ]
     },
     {
       "matchPackagePrefixes": [
@@ -40,7 +80,11 @@
         "registry.redhat.io/openshift-pipelines/pipelines-cli-tkn-rhel8"
       ],
       "groupName": "ec",
-      "reviewers": ["zregvart", "lcarva"]
+      "matchFileNames": [
+        "task/tkn-bundle/**",
+        "task/tkn-bundle-oci-ta/**",
+        "task/verify-enterprise-contract/**"
+      ]
     },
     {
       "matchPackageNames": [
@@ -49,14 +93,30 @@
         "quay.io/konflux-ci/clamav-db"
       ],
       "groupName": "integration",
-      "reviewers": ["dirgim", "hongweiliu17", "jsztuka", "Josh-Everett", " 14rcole", "chipspeak", "dheerajodha", "kasemAlem", "jencull", "sonam1412"]
+      "matchFileNames": [
+        "task/clair-scan/**",
+        "task/clamav-scan/**",
+        "task/deprecated-image-check/**",
+        "task/fbc-related-image-check/**",
+        "task/fbc-validation/**",
+        "task/inspect-image/**",
+        "task/sast-shell-check/**",
+        "task/sast-shell-check-oci-ta/**",
+        "task/sast-snyk-check/**",
+        "task/sast-snyk-check-oci-ta/**",
+        "task/sast-unicode-check/**",
+        "task/sast-unicode-check-oci-ta/**",
+        "task/sbom-json-check/**"
+      ]
     },
     {
       "matchPackageNames": [
         "quay.io/opdev/preflight"
       ],
       "groupName": "preflight",
-      "reviewers": ["skattoju"]
+      "matchFileNames": [
+        "task/ecosystem-cert-preflight-checks/**"
+      ]
     },
     {
       "matchPackagePrefixes": [
@@ -64,13 +124,19 @@
         "registry.access.redhat.com",
         "docker.io"
       ],
-      "schedule": ["on monday and wednesday"],
+      "schedule": [
+        "on monday and wednesday"
+      ],
       "groupName": "shared"
     },
     {
       "groupName": "github-actions",
-      "matchManagers": ["github-actions"],
-      "schedule": ["on monday"]
+      "matchManagers": [
+        "github-actions"
+      ],
+      "schedule": [
+        "on monday"
+      ]
     },
     {
       "matchPackageNames": [
@@ -78,6 +144,55 @@
       ],
       "enabled": false,
       "groupName": "ignore"
+    },
+    {
+      "groupName": "rpm-tasks",
+      "matchFileNames": [
+        "task/generate-odcs-compose/**",
+        "task/rpms-signature-scan/**",
+        "task/verify-signed-rpms/**"
+      ]
+    },
+    {
+      "groupName": "eaas",
+      "matchFileNames": [
+        "task/provision-env-with-ephemeral-namespace/**"
+      ]
+    },
+    {
+      "groupName": "build-vm-image",
+      "matchFileNames": [
+        "task/build-vm-image/**"
+      ]
+    },
+    {
+      "groupName": "rpm-ostree",
+      "matchFileNames": [
+        "task/rpm-ostree/**",
+        "task/rpm-ostree-oci-ta/**"
+      ]
+    },
+    {
+      "groupName": "opm",
+      "matchFileNames": [
+        "task/operator-sdk-generate-bundle/**",
+        "task/opm-get-bundle-version/**",
+        "task/opm-render-bundles/**"
+      ]
+    },
+    {
+      "groupName": "maven",
+      "matchFileNames": [
+        "task/build-maven-zip/**",
+        "task/build-maven-zip-oci-ta/**"
+      ]
+    },
+    {
+      "groupName": "oci-copy",
+      "matchFileNames": [
+        "task/oci-copy/**",
+        "task/oci-copy-oci-ta/**"
+      ]
     }
   ],
   "postUpdateOptions": [
@@ -86,7 +201,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^task/[\\w-]+/[0-9.]+/[\\w-]+\\.yaml$"],
+      "fileMatch": [
+        "^task/[\\w-]+/[0-9.]+/[\\w-]+\\.yaml$"
+      ],
       "matchStrings": [
         "value: (?<depName>quay\\.io/konflux-ci/buildah[^:]*):(?<currentValue>[^@]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
@@ -95,8 +212,12 @@
     },
     {
       "customType": "regex",
-      "fileMatch": [".github/workflows/run-task-tests.yaml"],
-      "matchStrings": ["ref:\\s+(?<currentDigest>[a-f0-9]{40})"],
+      "fileMatch": [
+        ".github/workflows/run-task-tests.yaml"
+      ],
+      "matchStrings": [
+        "ref:\\s+(?<currentDigest>[a-f0-9]{40})"
+      ],
       "currentValueTemplate": "main",
       "depNameTemplate": "konflux-ci",
       "packageNameTemplate": "https://github.com/konflux-ci/konflux-ci",
