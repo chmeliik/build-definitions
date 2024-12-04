@@ -64,7 +64,7 @@ spec:
 
   steps:
   - name: sanitize-cachi2-config-file-with-yq
-    image: quay.io/konflux-ci/yq:latest@sha256:343c2ca0a347ae87fe43750ee0873e1fe813f77eff56e9722c840bb75d97fef2
+    image: quay.io/konflux-ci/yq:latest@sha256:15a4bff3229069034b1fc7d6d3a7c9b06edf8c1c5f6f27d49bf4b31de823168a
     script: |
       if [ -n "${CONFIG_FILE_CONTENT}" ]
       then
