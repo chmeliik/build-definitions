@@ -6,7 +6,10 @@
   "dependencyDashboard": false,
   "prConcurrentLimit": 20,
   "tekton": {
-    "fileMatch": ["\\.yaml$", "\\.yml$"],
+    "fileMatch": [
+      "\\.yaml$",
+      "\\.yml$"
+    ],
     "includePaths": [
       ".tekton/**",
       "task/**",
@@ -16,68 +19,20 @@
   },
   "packageRules": [
     {
-      "matchPackageNames": [
-        "quay.io/konflux-ci/pull-request-builds",
-        "quay.io/konflux-ci/appstudio-utils",
-        "quay.io/konflux-ci/buildah",
-        "quay.io/konflux-ci/source-container-build",
-        "quay.io/redhat-appstudio/e2e-tests",
-        "quay.io/redhat-appstudio/buildah",
-        "quay.io/redhat-appstudio/hacbs-jvm-build-request-processor",
-        "quay.io/redhat-appstudio/build-definitions-source-image-build-utils",
-        "quay.io/redhat-appstudio/cachi2",
-        "quay.io/redhat-appstudio/sbom-utility-scripts-image",
-        "registry.access.redhat.com/rh-syft-tech-preview/syft-rhel9"
+      "matchFileNames": [
+        "task/**"
       ],
-      "groupName": "build",
-      "reviewers": ["mmorhun", "tkdchen", "rcerven", "mkosiarc", "brunoapimentel", "chmeliik"]
+      "groupName": [
+        "tasks"
+      ]
     },
     {
-      "matchPackagePrefixes": [
-        "quay.io/enterprise-contract/"
+      "matchFileNames": [
+        "task/acs-*/**"
       ],
-      "matchPackageNames": [
-        "registry.redhat.io/openshift-pipelines/pipelines-cli-tkn-rhel8"
-      ],
-      "groupName": "ec",
-      "reviewers": ["zregvart", "lcarva"]
-    },
-    {
-      "matchPackageNames": [
-        "quay.io/redhat-appstudio/konflux-test",
-        "quay.io/redhat-appstudio/clair-in-ci",
-        "quay.io/konflux-ci/clamav-db"
-      ],
-      "groupName": "integration",
-      "reviewers": ["dirgim", "hongweiliu17", "jsztuka", "Josh-Everett", " 14rcole", "chipspeak", "dheerajodha", "kasemAlem", "jencull", "sonam1412"]
-    },
-    {
-      "matchPackageNames": [
-        "quay.io/opdev/preflight"
-      ],
-      "groupName": "preflight",
-      "reviewers": ["skattoju"]
-    },
-    {
-      "matchPackagePrefixes": [
-        "registry.redhat.io",
-        "registry.access.redhat.com",
-        "docker.io"
-      ],
-      "schedule": ["on monday and wednesday"],
-      "groupName": "shared"
-    },
-    {
-      "groupName": "github-actions",
-      "matchManagers": ["github-actions"],
-      "schedule": ["on monday"]
-    },
-    {
-      "matchPackageNames": [
-        "quay.io/konflux-ci/clamav-db"
-      ],
-      "enabled": false,
-      "groupName": "ignore"
+      "groupName": [
+        "acs"
+      ]
     }
   ],
   "postUpdateOptions": [
@@ -86,7 +41,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^task/[\\w-]+/[0-9.]+/[\\w-]+\\.yaml$"],
+      "fileMatch": [
+        "^task/[\\w-]+/[0-9.]+/[\\w-]+\\.yaml$"
+      ],
       "matchStrings": [
         "value: (?<depName>quay\\.io/konflux-ci/buildah[^:]*):(?<currentValue>[^@]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
@@ -95,8 +52,12 @@
     },
     {
       "customType": "regex",
-      "fileMatch": [".github/workflows/run-task-tests.yaml"],
-      "matchStrings": ["ref:\\s+(?<currentDigest>[a-f0-9]{40})"],
+      "fileMatch": [
+        ".github/workflows/run-task-tests.yaml"
+      ],
+      "matchStrings": [
+        "ref:\\s+(?<currentDigest>[a-f0-9]{40})"
+      ],
       "currentValueTemplate": "main",
       "depNameTemplate": "konflux-ci",
       "packageNameTemplate": "https://github.com/konflux-ci/konflux-ci",
