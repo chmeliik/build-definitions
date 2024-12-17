@@ -2,6 +2,9 @@
 
 *   @konflux-ci/build-maintainers
 
+/CODEOWNERS     @konflux-ci/build-maintainers @konflux-ci/integration-service-maintainers
+/renovate.json  @konflux-ci/build-maintainers @konflux-ci/integration-service-maintainers
+
 # renovate groupName=build
 /task/acs-deploy-check                      @konflux-ci/build-maintainers
 /task/acs-image-check                       @konflux-ci/build-maintainers
