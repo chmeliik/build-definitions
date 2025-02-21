@@ -3,7 +3,7 @@ module github.com/konflux-ci/build-definitions/task-generator/trusted-artifacts
 go 1.22.7
 
 require (
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/google/go-containerregistry v0.20.2
 	github.com/tektoncd/pipeline v0.66.0
 	github.com/zregvart/tkn-fmt v0.0.0-20240614122620-a2995427266c
