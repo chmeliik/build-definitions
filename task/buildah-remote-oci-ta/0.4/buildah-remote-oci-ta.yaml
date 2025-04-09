@@ -197,6 +197,8 @@ spec:
       value: $(params.ADD_CAPABILITIES)
     - name: ANNOTATIONS_FILE
       value: $(params.ANNOTATIONS_FILE)
+    - name: BUILDAH_ISOLATION
+      value: rootless
     - name: BUILD_ARGS_FILE
       value: $(params.BUILD_ARGS_FILE)
     - name: CONTEXT
@@ -467,7 +469,7 @@ spec:
           tr -d "'"
       )
 
-      BUILDAH_ARGS=()
+      BUILDAH_ARGS=(--pid=host --net=host --uts=host)
       UNSHARE_ARGS=()
 
       if [ "${HERMETIC}" == "true" ]; then
@@ -705,6 +707,7 @@ spec:
           -e ADDITIONAL_SECRET="${ADDITIONAL_SECRET@Q}" \
           -e ADD_CAPABILITIES="${ADD_CAPABILITIES@Q}" \
           -e ANNOTATIONS_FILE="${ANNOTATIONS_FILE@Q}" \
+          -e BUILDAH_ISOLATION="${BUILDAH_ISOLATION@Q}" \
           -e BUILD_ARGS_FILE="${BUILD_ARGS_FILE@Q}" \
           -e CONTEXT="${CONTEXT@Q}" \
           -e ENTITLEMENT_SECRET="${ENTITLEMENT_SECRET@Q}" \
@@ -760,6 +763,9 @@ spec:
       capabilities:
         add:
         - SETFCAP
+      seLinuxOptions:
+        level: s0:c59,c44
+        type: container_runtime_t
     volumeMounts:
     - mountPath: /var/lib/containers
       name: varlibcontainers

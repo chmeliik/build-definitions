@@ -159,6 +159,8 @@ spec:
       - mountPath: /shared
         name: shared
     env:
+    - name: BUILDAH_ISOLATION
+      value: rootless
     - name: STORAGE_DRIVER
       value: $(params.STORAGE_DRIVER)
     - name: HERMETIC
@@ -346,7 +348,7 @@ spec:
             tr -d "'"
       )
 
-      BUILDAH_ARGS=()
+      BUILDAH_ARGS=(--pid=host --net=host --uts=host)
       UNSHARE_ARGS=()
 
       if [ "${HERMETIC}" == "true" ]; then
@@ -558,6 +560,9 @@ spec:
       capabilities:
         add:
           - SETFCAP
+      seLinuxOptions:
+        level: s0:c59,c44
+        type: container_runtime_t
     volumeMounts:
     - mountPath: /var/lib/containers
       name: varlibcontainers

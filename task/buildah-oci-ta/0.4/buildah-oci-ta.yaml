@@ -219,6 +219,8 @@ spec:
         value: $(params.ADD_CAPABILITIES)
       - name: ANNOTATIONS_FILE
         value: $(params.ANNOTATIONS_FILE)
+      - name: BUILDAH_ISOLATION
+        value: rootless
       - name: BUILD_ARGS_FILE
         value: $(params.BUILD_ARGS_FILE)
       - name: CONTEXT
@@ -428,7 +430,7 @@ spec:
             tr -d "'"
         )
 
-        BUILDAH_ARGS=()
+        BUILDAH_ARGS=(--pid=host --net=host --uts=host)
         UNSHARE_ARGS=()
 
         if [ "${HERMETIC}" == "true" ]; then
@@ -645,6 +647,9 @@ spec:
         capabilities:
           add:
             - SETFCAP
+        seLinuxOptions:
+          level: s0:c59,c44
+          type: container_runtime_t
     - name: push
       image: quay.io/konflux-ci/buildah-task:latest@sha256:4d8273444b0f2781264c232e12e88449bbf078c99e3da2a7f6dcaaf27bc53712
       workingDir: /var/workdir

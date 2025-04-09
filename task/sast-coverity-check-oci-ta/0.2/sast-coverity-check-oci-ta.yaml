@@ -243,6 +243,8 @@ spec:
         value: $(params.ADD_CAPABILITIES)
       - name: ANNOTATIONS_FILE
         value: $(params.ANNOTATIONS_FILE)
+      - name: BUILDAH_ISOLATION
+        value: rootless
       - name: BUILD_ARGS_FILE
         value: $(params.BUILD_ARGS_FILE)
       - name: CONTEXT
@@ -588,7 +590,7 @@ spec:
             tr -d "'"
         )
 
-        BUILDAH_ARGS=()
+        BUILDAH_ARGS=(--pid=host --net=host --uts=host)
         UNSHARE_ARGS=()
 
         if [ "${HERMETIC}" == "true" ]; then
@@ -805,6 +807,9 @@ spec:
         capabilities:
           add:
             - SETFCAP
+        seLinuxOptions:
+          level: s0:c59,c44
+          type: container_runtime_t
     - name: postprocess
       image: quay.io/redhat-services-prod/sast/coverity:202412.7
       workingDir: /var/workdir
