@@ -682,9 +682,12 @@ spec:
       REMOTESSHEOF
       chmod +x scripts/script-build.sh
 
+      OUTER_SELINUX_LABEL=type:container_runtime_t
+
       PODMAN_NVIDIA_ARGS=()
       if [[ "$PLATFORM" == "linux-g"* ]]; then
-          PODMAN_NVIDIA_ARGS+=("--device=nvidia.com/gpu=all" "--security-opt=label=disable")
+          PODMAN_NVIDIA_ARGS+=("--device=nvidia.com/gpu=all")
+          OUTER_SELINUX_LABEL=disable
       fi
 
       if ! [[ $IS_LOCALHOST ]]; then
@@ -738,6 +741,7 @@ spec:
           -v "${BUILD_DIR@Q}/results/:/tekton/results:Z" \
           -v "${BUILD_DIR@Q}/scripts:/scripts:Z" \
           "${PRIVILEGED_NESTED_FLAGS[@]@Q}" \
+          --security-opt label="${OUTER_SELINUX_LABEL@Q}" \
           --user=0 "${PODMAN_NVIDIA_ARGS[@]@Q}" --rm "${BUILDER_IMAGE@Q}" /scripts/script-build.sh "${@@Q}"
         echo "[$(date --utc -Ins)] Rsync back"
         rsync -ra "$SSH_HOST:$BUILD_DIR/volumes/shared/" /shared/
