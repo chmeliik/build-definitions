@@ -1,0 +1,16 @@
+{
+  "template": "https://github.com/chmeliik/task-repo-shared-ci",
+  "commit": "155c11daaa679191d8656a0cc27918b2866b64c4",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "repo_root": ".",
+      "_copy_without_render": [
+        "*"
+      ],
+      "_template": "https://github.com/chmeliik/task-repo-shared-ci",
+      "_commit": "155c11daaa679191d8656a0cc27918b2866b64c4"
+    }
+  },
+  "directory": null
+}

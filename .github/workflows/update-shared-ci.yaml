@@ -1,0 +1,78 @@
+# <TEMPLATED FILE!>
+# This file comes from the templates at https://github.com/chmeliik/task-repo-shared-ci.
+# Please consider sending a PR upstream instead of editing the file directly.
+# See the SHARED-CI.md document in this repo for more details.
+
+# Inspired by https://cruft.github.io/cruft/#automating-updates-with-github-actions
+name: Update shared CI files
+'on':
+  workflow_dispatch:  # Allow to run manually
+  schedule:
+    - cron: "0 2 * * 0"  # Every Sunday at 02:00
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          # cruft works better with full git history
+          fetch-depth: 0
+
+      - name: Run cruft update
+        id: update
+        run: |
+          #!/bin/bash
+          set -euo pipefail
+
+          pipx run cruft update --skip-apply-ask
+          git restore --staged .
+
+          cat << EOF > /tmp/body.md
+          [cruft] has found updates in <https://github.com/chmeliik/task-repo-shared-ci>
+
+          [cruft]: https://cruft.github.io/cruft/
+          EOF
+
+          mapfile -t merge_conflicts < <(
+            git ls-files --modified | xargs grep --files-with-matches '^<<<<<<< ours'
+          )
+          mapfile -t rejected_patches < <(
+            git ls-files --others | grep '\.rej$'
+          )
+
+          if [[ ${#merge_conflicts[@]} -gt 0 || ${#rejected_patches[@]} -gt 0 ]]
+          then
+            # If the PR is already open and this workflow encounters update problems,
+            # the next time it runs, we want to set the PR back to draft
+            echo draft=always-true >> "$GITHUB_OUTPUT"
+            cat << EOF >> /tmp/body.md
+
+          > [!CAUTION]
+          > The update resulted in merge conflicts and/or rejected patches!
+          >
+          > Please address the problems manually and then mark the PR ready for review.
+          >
+          $(printf '> - ❌ `%s`\n' "${merge_conflicts[@]}" "${rejected_patches[@]}")
+          EOF
+          else
+            echo draft=false >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/create-github-app-token@v2.0.6
+        id: app-token
+        with:
+          # These may already be set globally for your organization
+          # If not, see the SHARED-CI.md doc in this repo for instructions
+          app-id: ${{ secrets.SHARED_CI_UPDATER_APP_ID }}
+          private-key: ${{ secrets.SHARED_CI_UPDATER_PRIVATE_KEY }}
+
+      - name: Create pull request if needed
+        uses: peter-evans/create-pull-request@v7.0.8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          title: Update shared CI files
+          commit-message: "chore: update shared CI files"
+          body-path: /tmp/body.md
+          branch: cruft/update
+          draft: ${{ steps.update.outputs.draft }}
+          delete-branch: true
