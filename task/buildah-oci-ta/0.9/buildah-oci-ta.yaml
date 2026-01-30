@@ -398,7 +398,8 @@ spec:
           readOnly: true
           subPath: ca-bundle.crt
     - name: build
-      image: quay.io/konflux-ci/buildah-task:latest@sha256:4c470b5a153c4acd14bf4f8731b5e36c61d7faafe09c2bf376bb81ce84aa5709
+      image: quay.io/acmiel-test/test:buildah-with-kbc
+      imagePullPolicy: Always
       args:
         - --build-args
         - $(params.BUILD_ARGS[*])
@@ -969,7 +970,9 @@ spec:
         declare IMAGE
 
         buildah_cmd_array=(
-          buildah build
+          konflux-build-cli image build
+          -f "$dockerfile_copy" -t "$IMAGE" --context .
+          --
           "${VOLUME_MOUNTS[@]}"
           "${BUILDAH_ARGS[@]}"
           "${LABELS[@]}"
@@ -977,7 +980,6 @@ spec:
           --tls-verify="$TLSVERIFY" --no-cache
           --ulimit nofile=4096:4096
           --http-proxy=false
-          -f "$dockerfile_copy" -t "$IMAGE" .
         )
         buildah_cmd=$(printf "%q " "${buildah_cmd_array[@]}")
 
@@ -993,7 +995,7 @@ spec:
 
         set_proxy
 
-        echo "[$(date --utc -Ins)] Run buildah build"
+        echo "[$(date --utc -Ins)] Run build command"
         echo "[$(date --utc -Ins)] ${command}"
 
         unshare -Uf "${UNSHARE_ARGS[@]}" --keep-caps -r --map-users 1,1,65536 --map-groups 1,1,65536 -w "${SOURCE_CODE_DIR}/$CONTEXT" --mount -- sh -c "$command"
@@ -1038,7 +1040,8 @@ spec:
           add:
             - SETFCAP
     - name: push
-      image: quay.io/konflux-ci/buildah-task:latest@sha256:4c470b5a153c4acd14bf4f8731b5e36c61d7faafe09c2bf376bb81ce84aa5709
+      image: quay.io/acmiel-test/test:buildah-with-kbc
+      imagePullPolicy: Always
       workingDir: /var/workdir
       volumeMounts:
         - mountPath: /var/lib/containers
