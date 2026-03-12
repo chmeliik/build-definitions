@@ -345,6 +345,8 @@ spec:
         value: $(params.IMAGE_EXPIRES_AFTER)
       - name: INHERIT_BASE_IMAGE_LABELS
         value: $(params.INHERIT_BASE_IMAGE_LABELS)
+      - name: KBC_LOG_LEVEL
+        value: debug
       - name: PRIVILEGED_NESTED
         value: $(params.PRIVILEGED_NESTED)
       - name: SBOM_SKIP_VALIDATION
