@@ -497,6 +497,11 @@ spec:
         unset HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY
       }
 
+      # These are no longer used anywhere in the task script (TODO: implement pull-proxy in kbc)
+      # They need to be called somewhere to prevent the ta-generator script from removing them
+      set_proxy
+      unset_proxy
+
       echo "[$(date --utc -Ins)] Validate context path"
 
       if [ -z "$CONTEXT" ]; then
@@ -653,26 +658,6 @@ spec:
       )
 
       BUILDAH_ARGS=()
-      UNSHARE_ARGS=()
-
-      if [ "${HERMETIC}" == "true" ]; then
-        BUILDAH_ARGS+=("--pull=never")
-        UNSHARE_ARGS+=("--net")
-        buildah_retries=3
-
-        set_proxy
-
-        for image in $BASE_IMAGES; do
-          if ! retry unshare -Ufp --keep-caps -r --map-users 1,1,65536 --map-groups 1,1,65536 --mount -- buildah pull --retry "$buildah_retries" "$image"; then
-            echo "Failed to pull base image ${image}"
-            exit 1
-          fi
-        done
-
-        unset_proxy
-
-        echo "Build will be executed with network isolation"
-      fi
 
       if [ -n "${BUILD_ARGS_FILE}" ]; then
         BUILD_ARGS_FILE=$(realpath "${SOURCE_CODE_DIR}/${BUILD_ARGS_FILE}")
@@ -694,10 +679,6 @@ spec:
 
       if [ "${SQUASH}" == "true" ]; then
         BUILDAH_ARGS+=("--squash")
-      fi
-
-      if [ "${SKIP_UNUSED_STAGES}" != "true" ]; then
-        BUILDAH_ARGS+=("--skip-unused-stages=false")
       fi
 
       if [ "${BUILDAH_OMIT_HISTORY}" == "true" ]; then
@@ -826,12 +807,14 @@ spec:
 
       buildah_cmd_array=(
         # TODO: lost the proxy settings for inspecting base image (for labels.json)
+        #       and also for pre-pulling base images
         # TODO: lost .containerignore handling for contents-sets.json
         konflux-build-cli image build
-        -f "$dockerfile_copy" -t "$IMAGE" --context .
+        -f "$dockerfile_copy" -t "$IMAGE" --context "$SOURCE_CODE_DIR/$CONTEXT"
         --secret-dirs "src=/additional-secret,name=$ADDITIONAL_SECRET,optional=true"
         --workdir-mount "$WORKINGDIR_MOUNT"
         --target "$TARGET_STAGE"
+        --skip-unused-stages="$SKIP_UNUSED_STAGES"
         --inherit-labels="$INHERIT_BASE_IMAGE_LABELS"
         --source-date-epoch "$BUILDAH_SOURCE_DATE_EPOCH"
         --rewrite-timestamp="$BUILDAH_REWRITE_TIMESTAMP"
@@ -845,6 +828,7 @@ spec:
         --add-legacy-labels
         --include-legacy-buildinfo-path="$ICM_KEEP_COMPAT_LOCATION"
         --skip-injections="$SKIP_INJECTIONS"
+        --hermetic="$HERMETIC"
         --
         "${BUILDAH_ARGS[@]}"
         "${VOLUME_MOUNTS[@]}"
@@ -852,26 +836,14 @@ spec:
         --ulimit nofile=4096:4096
         --http-proxy=false
       )
-      buildah_cmd=$(printf "%q " "${buildah_cmd_array[@]}")
-
-      if [ "${HERMETIC}" == "true" ]; then
-        # enabling loopback adapter enables Bazel builds to work in hermetic mode.
-        command="ip link set lo up && $buildah_cmd"
-      else
-        command="$buildah_cmd"
-      fi
 
       # disable host subcription manager integration
       find /usr/share/rhel/secrets -type l -exec unlink {} \;
 
-      set_proxy
-
       echo "[$(date --utc -Ins)] Run build command"
-      echo "[$(date --utc -Ins)] ${command}"
+      echo "[$(date --utc -Ins)] $(printf '%q ' "${buildah_cmd_array[@]}")"
 
-      unshare -Uf "${UNSHARE_ARGS[@]}" --keep-caps -r --map-users 1,1,65536 --map-groups 1,1,65536 -w "${SOURCE_CODE_DIR}/$CONTEXT" --mount -- sh -c "$command"
-
-      unset_proxy
+      "${buildah_cmd_array[@]}"
 
       echo "[$(date --utc -Ins)] Add metadata"
 
