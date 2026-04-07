@@ -714,8 +714,10 @@ spec:
       # Prevent ShellCheck from giving a warning because 'image' is defined and 'IMAGE' is not.
       declare IMAGE
 
+      # TODO: do this properly
+      echo "!content-sets.json" >> "$SOURCE_CODE_DIR/.containerignore"
+
       buildah_cmd_array=(
-          # TODO: lost .containerignore handling for contents-sets.json
           konflux-build-cli image build
           -f "$dockerfile_copy" -t "$IMAGE" --context "$SOURCE_CODE_DIR/$CONTEXT"
           --secret-dirs "src=/additional-secret,name=$ADDITIONAL_SECRET,optional=true"
