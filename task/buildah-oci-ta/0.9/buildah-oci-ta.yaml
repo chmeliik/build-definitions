@@ -538,39 +538,6 @@ spec:
           ANNOTATIONS_FILE=$(realpath "${SOURCE_CODE_DIR}/${ANNOTATIONS_FILE}")
         fi
 
-        # Save `args` for later
-        array_args=("$@")
-
-        # Split `args` into two multiple sets of arguments.
-        while [[ $# -gt 0 ]]; do
-          case $1 in
-          --build-args)
-            shift
-            # still have to skip them, no longer have to handle them
-            while [[ $# -gt 0 && $1 != --* ]]; do shift; done
-            ;;
-          --envs)
-            shift
-            # still have to skip them, no longer have to handle them
-            while [[ $# -gt 0 && $1 != --* ]]; do shift; done
-            ;;
-          --labels)
-            shift
-            # still have to skip them, no longer have to handle them
-            while [[ $# -gt 0 && $1 != --* ]]; do shift; done
-            ;;
-          --annotations)
-            shift
-            # still have to skip them, no longer have to handle them
-            while [[ $# -gt 0 && $1 != --* ]]; do shift; done
-            ;;
-          *)
-            echo "unexpected argument: $1" >&2
-            exit 2
-            ;;
-          esac
-        done
-
         BUILDAH_ARGS=()
 
         if [ -n "${BUILD_ARGS_FILE}" ]; then
@@ -697,7 +664,6 @@ spec:
           --quay-image-expires-after "$IMAGE_EXPIRES_AFTER"
           --build-args-file "$BUILD_ARGS_FILE"
           --annotations-file "$ANNOTATIONS_FILE"
-          "${array_args[@]}" # --annotations, --labels, --envs, --build-args
           --legacy-build-timestamp "$BUILD_TIMESTAMP"
           --add-legacy-labels
           --include-legacy-buildinfo-path="$ICM_KEEP_COMPAT_LOCATION"
@@ -713,6 +679,7 @@ spec:
           --prefetch-output-mount /cachi2/output
           --containerfile-json-output /shared/parsed_dockerfile.json
           --resolved-base-images-output /shared/base_images_digests
+          "$@" # --annotations, --labels, --envs, --build-args
           --
           "${BUILDAH_ARGS[@]}"
           "${VOLUME_MOUNTS[@]}"
