@@ -514,20 +514,6 @@ spec:
         exit 1
       fi
 
-      dockerfile_copy=$(mktemp --tmpdir "$(basename "$dockerfile_path").XXXXXX")
-      cp "$dockerfile_path" "$dockerfile_copy"
-
-      # Inject the image content manifest into the container we are producing.
-      # This will generate the content-sets.json file and copy it by appending a COPY
-      # instruction to the Containerfile.
-      icm_opts=()
-      if [ "${ICM_KEEP_COMPAT_LOCATION}" = "true" ]; then
-        icm_opts+=(-c)
-      fi
-      if [ "${SKIP_INJECTIONS}" = "false" ]; then
-        inject-icm-to-containerfile "${icm_opts[@]}" "$dockerfile_copy" "/var/workdir/cachi2/output/bom.json" "$SOURCE_CODE_DIR/$CONTEXT"
-      fi
-
       echo "[$(date --utc -Ins)] Prepare system (architecture: $(uname -m))"
 
       # Fixing group permission on /var/lib/containers
@@ -651,12 +637,9 @@ spec:
       # Prevent ShellCheck from giving a warning because 'image' is defined and 'IMAGE' is not.
       declare IMAGE
 
-      # TODO: do this properly
-      echo "!content-sets.json" >> "$SOURCE_CODE_DIR/.containerignore"
-
       buildah_cmd_array=(
           konflux-build-cli image build
-          -f "$dockerfile_copy" -t "$IMAGE" --context "$SOURCE_CODE_DIR/$CONTEXT"
+          -f "$dockerfile_path" -t "$IMAGE" --context "$SOURCE_CODE_DIR/$CONTEXT"
           --secret-dirs "src=/additional-secret,name=$ADDITIONAL_SECRET,optional=true"
           --workdir-mount "$WORKINGDIR_MOUNT"
           --target "$TARGET_STAGE"
