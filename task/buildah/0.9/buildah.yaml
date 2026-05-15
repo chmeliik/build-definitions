@@ -309,7 +309,7 @@ spec:
       value: $(params.SKIP_INJECTIONS)
     imagePullPolicy: IfNotPresent
   steps:
-  - image: quay.io/acmiel-test/test:buildah-with-kbc
+  - image: quay.io/konflux-ci/konflux-build-cli:latest@sha256:f09d5dccfefe7d2802b0b6d5032f9723f688566ee1d5f524948bab4991b50f66
     imagePullPolicy: Always
     name: build
     computeResources:
@@ -538,6 +538,7 @@ spec:
       echo "[$(date --utc -Ins)] End build"
 
     securityContext:
+      runAsUser: 0
       capabilities:
         add:
         - SETFCAP
@@ -559,7 +560,7 @@ spec:
     workingDir: $(workspaces.source.path)
 
   - name: push
-    image: quay.io/acmiel-test/test:buildah-with-kbc
+    image: quay.io/konflux-ci/konflux-build-cli:latest@sha256:f09d5dccfefe7d2802b0b6d5032f9723f688566ee1d5f524948bab4991b50f66
     imagePullPolicy: Always
     computeResources:
       limits:

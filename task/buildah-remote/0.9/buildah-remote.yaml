@@ -327,7 +327,7 @@ spec:
     - name: SKIP_INJECTIONS
       value: $(params.SKIP_INJECTIONS)
     - name: BUILDER_IMAGE
-      value: quay.io/acmiel-test/test:buildah-with-kbc
+      value: quay.io/konflux-ci/konflux-build-cli:latest@sha256:f09d5dccfefe7d2802b0b6d5032f9723f688566ee1d5f524948bab4991b50f66
     - name: PLATFORM
       value: $(params.PLATFORM)
     - name: IMAGE_APPEND_PLATFORM
@@ -374,7 +374,7 @@ spec:
       value: $(params.SOURCE_DATE_EPOCH)
     - name: BUILDAH_REWRITE_TIMESTAMP
       value: $(params.REWRITE_TIMESTAMP)
-    image: quay.io/acmiel-test/test:buildah-with-kbc
+    image: quay.io/konflux-ci/konflux-build-cli:latest@sha256:f09d5dccfefe7d2802b0b6d5032f9723f688566ee1d5f524948bab4991b50f66
     imagePullPolicy: Always
     name: build
     script: |-
@@ -439,7 +439,6 @@ spec:
         rsync -razW /mnt/trusted-ca/ "$SSH_HOST:$BUILD_DIR/volumes/trusted-ca/"
         rsync -razW /mnt/proxy-ca-bundle/ "$SSH_HOST:$BUILD_DIR/volumes/proxy-ca-bundle/"
         rsync -razW  "$HOME/.docker/" "$SSH_HOST:$BUILD_DIR/.docker/"
-        rsync -razW  --mkpath "/usr/bin/retry" "$SSH_HOST:$BUILD_DIR/usr/bin/retry"
         rsync -razW  "/tekton/results/" "$SSH_HOST:$BUILD_DIR/results/"
       fi
       if [ "${IMAGE_APPEND_PLATFORM}" == "true" ]; then
@@ -704,12 +703,11 @@ spec:
           -v "${BUILD_DIR@Q}/volumes/trusted-ca:/mnt/trusted-ca:Z" \
           -v "${BUILD_DIR@Q}/volumes/proxy-ca-bundle:/mnt/proxy-ca-bundle:Z" \
           -v "${BUILD_DIR@Q}/.docker/:/root/.docker:Z" \
-          -v "${BUILD_DIR@Q}/usr/bin/retry:/usr/bin/retry:Z" \
           -v "${BUILD_DIR@Q}/results/:/tekton/results:Z" \
           -v "${BUILD_DIR@Q}/scripts:/scripts:Z" \
           -v /var/lib/containers \
           "${PRIVILEGED_NESTED_FLAGS[@]@Q}" \
-          --user=0 "${PODMAN_NVIDIA_ARGS[@]@Q}" --rm "${BUILDER_IMAGE@Q}" /scripts/script-build.sh "${@@Q}"
+          --user=0 "${PODMAN_NVIDIA_ARGS[@]@Q}" --rm --entrypoint='' "${BUILDER_IMAGE@Q}" /scripts/script-build.sh "${@@Q}"
         echo "[$(date --utc -Ins)] Rsync back"
         rsync -razW --stats "$SSH_HOST:$BUILD_DIR/workspaces/source/" "$(workspaces.source.path)/"
         rsync -razW --stats "$SSH_HOST:$BUILD_DIR/volumes/shared/" /shared/
@@ -729,6 +727,7 @@ spec:
       capabilities:
         add:
         - SETFCAP
+      runAsUser: 0
     volumeMounts:
     - mountPath: /var/lib/containers
       name: varlibcontainers
@@ -762,7 +761,7 @@ spec:
       value: $(params.BUILDAH_FORMAT)
     - name: TASKRUN_NAME
       value: $(context.taskRun.name)
-    image: quay.io/acmiel-test/test:buildah-with-kbc
+    image: quay.io/konflux-ci/konflux-build-cli:latest@sha256:f09d5dccfefe7d2802b0b6d5032f9723f688566ee1d5f524948bab4991b50f66
     imagePullPolicy: Always
     name: push
     script: |

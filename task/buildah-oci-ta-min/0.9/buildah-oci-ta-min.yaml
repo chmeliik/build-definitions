@@ -383,7 +383,7 @@ spec:
       value: $(params.SOURCE_DATE_EPOCH)
     - name: BUILDAH_REWRITE_TIMESTAMP
       value: $(params.REWRITE_TIMESTAMP)
-    image: quay.io/acmiel-test/test:buildah-with-kbc
+    image: quay.io/konflux-ci/konflux-build-cli:latest@sha256:f09d5dccfefe7d2802b0b6d5032f9723f688566ee1d5f524948bab4991b50f66
     imagePullPolicy: Always
     name: build
     script: |
@@ -574,6 +574,7 @@ spec:
       capabilities:
         add:
         - SETFCAP
+      runAsUser: 0
     volumeMounts:
     - mountPath: /var/lib/containers
       name: varlibcontainers
@@ -604,7 +605,7 @@ spec:
       value: $(params.BUILDAH_FORMAT)
     - name: TASKRUN_NAME
       value: $(context.taskRun.name)
-    image: quay.io/acmiel-test/test:buildah-with-kbc
+    image: quay.io/konflux-ci/konflux-build-cli:latest@sha256:f09d5dccfefe7d2802b0b6d5032f9723f688566ee1d5f524948bab4991b50f66
     imagePullPolicy: Always
     name: push
     script: |

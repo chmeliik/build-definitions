@@ -396,7 +396,7 @@ spec:
           readOnly: true
           subPath: ca-bundle.crt
     - name: build
-      image: quay.io/acmiel-test/test:buildah-with-kbc
+      image: quay.io/konflux-ci/konflux-build-cli:latest@sha256:f09d5dccfefe7d2802b0b6d5032f9723f688566ee1d5f524948bab4991b50f66
       imagePullPolicy: Always
       args:
         - --build-args
@@ -639,8 +639,9 @@ spec:
         capabilities:
           add:
             - SETFCAP
+        runAsUser: 0
     - name: push
-      image: quay.io/acmiel-test/test:buildah-with-kbc
+      image: quay.io/konflux-ci/konflux-build-cli:latest@sha256:f09d5dccfefe7d2802b0b6d5032f9723f688566ee1d5f524948bab4991b50f66
       imagePullPolicy: Always
       workingDir: /var/workdir
       volumeMounts:
