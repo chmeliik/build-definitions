@@ -396,6 +396,18 @@ spec:
 
       sed -i 's/^\s*short-name-mode\s*=\s*.*/short-name-mode = "disabled"/' /etc/containers/registries.conf
 
+      # Delete Red Hat registry settings from the containers-policy.json
+      # TODO: drop this (<issue link goes here>)
+      container_policy=$(
+        jq '.transports |= (
+              del(.docker.["registry.access.redhat.com"]) |
+              del(.docker.["registry.redhat.io"]) |
+              if (.docker == {}) then del(.docker) else . end
+            )' /etc/containers/policy.json
+      )
+      echo "Modified container policy:"
+      printf '%s\n' "$container_policy" | tee /etc/containers/policy.json
+
       # Setting new namespace to run buildah - 2^32-2
       echo 'root:1:4294967294' | tee -a /etc/subuid >> /etc/subgid
 
