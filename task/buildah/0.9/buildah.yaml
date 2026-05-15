@@ -378,17 +378,6 @@ spec:
         update-ca-trust
       fi
 
-      echo "[$(date --utc -Ins)] Prepare Dockerfile"
-
-      if [ -e "$SOURCE_CODE_DIR/$CONTEXT/$DOCKERFILE" ]; then
-        dockerfile_path="$(pwd)/$SOURCE_CODE_DIR/$CONTEXT/$DOCKERFILE"
-      elif [ -e "$SOURCE_CODE_DIR/$DOCKERFILE" ]; then
-        dockerfile_path="$(pwd)/$SOURCE_CODE_DIR/$DOCKERFILE"
-      else
-        echo "Cannot find Dockerfile $DOCKERFILE"
-        exit 1
-      fi
-
       echo "[$(date --utc -Ins)] Prepare system (architecture: $(uname -m))"
 
       # Fixing group permission on /var/lib/containers
@@ -410,6 +399,17 @@ spec:
 
       # Setting new namespace to run buildah - 2^32-2
       echo 'root:1:4294967294' | tee -a /etc/subuid >> /etc/subgid
+
+      echo "[$(date --utc -Ins)] Construct build command"
+
+      if [ -e "$SOURCE_CODE_DIR/$CONTEXT/$DOCKERFILE" ]; then
+        dockerfile_path="$(pwd)/$SOURCE_CODE_DIR/$CONTEXT/$DOCKERFILE"
+      elif [ -e "$SOURCE_CODE_DIR/$DOCKERFILE" ]; then
+        dockerfile_path="$(pwd)/$SOURCE_CODE_DIR/$DOCKERFILE"
+      else
+        echo "Cannot find Dockerfile $DOCKERFILE"
+        exit 1
+      fi
 
       if [ -n "${ANNOTATIONS_FILE}" ] && [ -f "${SOURCE_CODE_DIR}/${ANNOTATIONS_FILE}" ]; then
         ANNOTATIONS_FILE=$(realpath "${SOURCE_CODE_DIR}/${ANNOTATIONS_FILE}")
