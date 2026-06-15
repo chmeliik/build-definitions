@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   labels:
-    app.kubernetes.io/version: "0.10.4"
+    app.kubernetes.io/version: "0.10.5"
     build.appstudio.redhat.com/build_type: "docker"
   annotations:
     tekton.dev/pipelines.minVersion: "0.12.1"
@@ -320,7 +320,8 @@ spec:
       value: $(params.ALLOW_CROSS_PLATFORM_IMAGES)
     imagePullPolicy: IfNotPresent
   steps:
-  - image: quay.io/konflux-ci/konflux-build-cli:latest@sha256:0415613f955ef8f7c6fc821a6738dcf062d9a3582441042b87a2391c375d7f54
+  - image: quay.io/acmiel-test/test:kbc-with-syft
+    imagePullPolicy: Always
     name: build
     computeResources:
       limits:
@@ -483,6 +484,18 @@ spec:
         fi
       fi
 
+      sbom_args=()
+      if [[ "$SKIP_SBOM_GENERATION" != true ]]; then
+        sbom_args+=(
+          --sbom-format "$SBOM_TYPE"
+          --syft-select-catalogers "$SBOM_SYFT_SELECT_CATALOGERS"
+          --syft-image-output "$(workspaces.source.path)/sbom-image.json"
+        )
+        if [[ "${HERMETIC}" == "false" && "${SBOM_SOURCE_SCAN_ENABLED}" == "true" ]]; then
+          sbom_args+=(--syft-source-output "$(workspaces.source.path)/sbom-source.json")
+        fi
+      fi
+
       # Prevent ShellCheck from giving a warning because 'image' is defined and 'IMAGE' is not.
       declare IMAGE
 
@@ -518,6 +531,7 @@ spec:
           --prefetch-output-mount /cachi2/output
           "${security_args[@]}"
           "${rhsm_args[@]}"
+          "${sbom_args[@]}"
           --containerfile-json-output /shared/parsed_dockerfile.json
           --resolved-base-images-output /shared/base_images_digests
           --no-cache
@@ -756,78 +770,6 @@ spec:
       mountPath: /var/run/sigstore/cosign
       readOnly: true
     workingDir: $(workspaces.source.path)
-
-  - name: sbom-syft-generate
-    image: quay.io/konflux-ci/task-runner:2.0.0@sha256:4b01fbf98fa7155f5c21443c285f88853864ae7cc66981cf6b543fc6ba16b81b
-    computeResources:
-      limits:
-        memory: 4Gi
-        cpu: 1100m
-      requests:
-        memory: 4Gi
-        cpu: 1100m
-    # Respect Syft configuration if the user has it in the root of their repository
-    # (need to set the workdir, see https://github.com/anchore/syft/issues/2465)
-    workingDir: $(workspaces.source.path)/source
-    script: |
-      #!/bin/bash
-      set -euo pipefail
-      echo "[$(date --utc -Ins)] Generate SBOM"
-
-      if [ "${SKIP_SBOM_GENERATION}" = "true" ]; then
-        echo "Skipping SBOM generation"
-        exit 0
-      fi
-
-      case $SBOM_TYPE in
-        cyclonedx)
-          syft_sbom_type=cyclonedx-json@1.5 ;;
-        spdx)
-          syft_sbom_type=spdx-json@2.3 ;;
-        *)
-          echo "Invalid SBOM type: $SBOM_TYPE. Valid: cyclonedx, spdx" >&2
-          exit 1
-          ;;
-      esac
-
-      OCI_DIR="$(cat /shared/container_path)"
-
-      syft_oci_args=(
-        oci-dir:"${OCI_DIR}"
-        --output "$syft_sbom_type=$(workspaces.source.path)/sbom-image.json"
-      )
-      syft_source_args=(
-        dir:"$(workspaces.source.path)/$SOURCE_CODE_DIR/$CONTEXT"
-        --output "$syft_sbom_type=$(workspaces.source.path)/sbom-source.json"
-      )
-
-      if [ "${SBOM_SYFT_SELECT_CATALOGERS}" != "" ]; then
-        syft_oci_args+=(--select-catalogers "${SBOM_SYFT_SELECT_CATALOGERS}")
-        syft_source_args+=(--select-catalogers "${SBOM_SYFT_SELECT_CATALOGERS}")
-      fi
-
-      echo "Running syft on the image"
-      syft "${syft_oci_args[@]}"
-      if [[ "${HERMETIC}" == "false" && "${SBOM_SOURCE_SCAN_ENABLED}" == "true" ]]; then
-        echo "Running syft on the source code"
-        syft "${syft_source_args[@]}"
-      else
-        echo "Skipping syft on source code."
-      fi
-
-      echo "[$(date --utc -Ins)] End sbom-syft-generate"
-
-    securityContext:
-      runAsUser: 0
-    volumeMounts:
-    - mountPath: /var/lib/containers
-      name: varlibcontainers
-    - mountPath: /shared
-      name: shared
-    - mountPath: /etc/pki/tls/certs/ca-custom-bundle.crt
-      name: trusted-ca
-      readOnly: true
-      subPath: ca-bundle.crt
 
   - name: prepare-sboms
     image: quay.io/konflux-ci/mobster:1.2.1-1782136886@sha256:1374bc35c71781987cce00ef5efe2be42923f83def19b60a570e947189b90d15

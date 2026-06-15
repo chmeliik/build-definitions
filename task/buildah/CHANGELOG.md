@@ -11,6 +11,31 @@ If that's not something you ever plan to do, consider removing this section.
 
 *Nothing yet.*
 
+## 0.10.5
+
+### Changed
+
+- When scanning the built image with Syft, scans the image filesystem as
+  a directory instead of scanning the the image as an OCI archive. This improves
+  the scanning time, disk usage and may improve memory usage. More details in
+  [konflux-build-cli/docs/design/syft-image-scanning.md].
+
+### Removed
+
+- The entire `sbom-syft-generate` step, because SBOM generation now happens in
+  the `build` step. This reduces the overall compute requirements of the Task.
+  - If you have compute resource overrides configured for the `sbom-syft-generate`
+    step, the pipeline will fail with `invalid StepOverride`.
+    - The MintMaker PR that updates your buildah task to version 0.10.5 will attempt
+      to perform automatic migration as follows:
+      - remove the sbom step override
+      - if the memory request and/or limit for the sbom step were higher than the
+        ones for the build step, move the memory overrides to the build step
+    - If you don't have MintMaker enabled or the migration fails to apply,
+      please follow the above procedure manually.
+
+[konflux-build-cli/docs/design/syft-image-scanning.md]: https://github.com/konflux-ci/konflux-build-cli/blob/3fe637dbb77f05e107682c186446bb027bf98f86/docs/design/syft-image-scanning.md
+
 ## 0.10.4
 
 ### Fixed
