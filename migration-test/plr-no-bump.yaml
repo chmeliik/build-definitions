@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: plr-referencing-pipeline-no-bump
+spec:
+  pipelineRef:
+    name: test-pipeline
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        - name: build
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+        # Expected: remove sbom stepSpec, keep build as is
+        # (sbom 4Gi <= build 10Gi, no bump needed)
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 4Gi
+            limits:
+              memory: 4Gi

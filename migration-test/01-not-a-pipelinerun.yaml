@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: not-a-pipelinerun
+# Expected: skip, not a PipelineRun
+spec:
+  steps:
+    - name: build
+      image: registry.access.redhat.com/ubi9/buildah
+      script: |
+        echo "hello"

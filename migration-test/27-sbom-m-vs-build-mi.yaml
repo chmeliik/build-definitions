@@ -1,0 +1,35 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: sbom-m-vs-build-mi
+spec:
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        # Expected: bump build to 8000Mi, remove sbom stepSpec
+        # (8000Mi = 8388608000 > 8200M = 8200000000,
+        #  binary Mi > decimal M despite the smaller number)
+        - name: build
+          computeResources:
+            requests:
+              memory: 8200M
+            limits:
+              memory: 8200M
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 8000Mi
+            limits:
+              memory: 8000Mi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

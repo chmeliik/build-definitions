@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: no-taskrunspecs
+spec:
+  # Expected: skip, no sbom-syft-generate overrides found
+  # (no taskRunSpecs at all)
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

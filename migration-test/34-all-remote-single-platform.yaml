@@ -1,0 +1,38 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: all-remote-single-platform
+spec:
+  params:
+    - name: build-platforms
+      value:
+        - linux/arm64
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        - name: build
+          computeResources:
+            requests:
+              memory: 4Gi
+            limits:
+              memory: 4Gi
+        # Expected: just remove this stepSpec, do NOT bump build
+        # (single remote platform, no in-cluster build)
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

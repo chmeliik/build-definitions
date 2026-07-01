@@ -1,0 +1,29 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: sbom-only-stepspec-lte-defaults
+spec:
+  # Expected: remove entire taskRunSpec for build-container
+  # (sbom 4Gi <= default 8Gi, no build inserted,
+  #  only pipelineTaskName remains → remove entirely)
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 4Gi
+            limits:
+              memory: 4Gi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

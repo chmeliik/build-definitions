@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: sbom-cpu-gt-build-cpu
+spec:
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        - name: build
+          computeResources:
+            requests:
+              cpu: "2"
+              memory: 10Gi
+            limits:
+              cpu: "4"
+              memory: 10Gi
+        # Expected: bump build cpu to req 6/limit 8,
+        # keep build memory, remove sbom stepSpec
+        # (sbom cpu req 6=6000m > build 2=2000m,
+        #  sbom cpu limit 8=8000m > build 4=4000m,
+        #  sbom mem 4Gi <= build 10Gi → no mem bump)
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              cpu: "6"
+              memory: 4Gi
+            limits:
+              cpu: "8"
+              memory: 4Gi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

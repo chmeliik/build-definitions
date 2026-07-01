@@ -1,0 +1,54 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: multiple-other-stepspecs
+spec:
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        # Expected: update build to req 10Gi / limit 10Gi,
+        # remove sbom-syft-generate stepSpec,
+        # inject-sbom-and-push and prefetch-dependencies untouched
+        - name: build
+          computeResources:
+            requests:
+              memory: 4Gi
+            limits:
+              memory: 4Gi
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+        - name: inject-sbom-and-push
+          computeResources:
+            requests:
+              memory: 1Gi
+            limits:
+              memory: 1Gi
+    - pipelineTaskName: prefetch-dependencies
+      computeResources:
+        requests:
+          cpu: "1"
+          memory: 2Gi
+        limits:
+          memory: 2Gi
+  pipelineSpec:
+    tasks:
+      - name: prefetch-dependencies
+        taskRef:
+          resolver: bundles
+          params:
+            - name: name
+              value: prefetch-dependencies
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

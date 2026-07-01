@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: sbom-cpu-lte-default
+spec:
+  # Expected: remove entire taskRunSpec
+  # (sbom mem 4Gi <= default 8Gi → no mem bump;
+  #  sbom cpu 2=2000m < default 4600m → no cpu bump;
+  #  nothing inserted, only pipelineTaskName remains)
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

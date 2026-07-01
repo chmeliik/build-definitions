@@ -1,0 +1,16 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: test-pipeline
+spec:
+  tasks:
+    - name: build-container
+      taskRef:
+        resolver: bundles
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: buildah
+          - name: bundle
+            value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

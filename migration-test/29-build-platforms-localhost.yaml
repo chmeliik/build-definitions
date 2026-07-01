@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: build-platforms-localhost
+spec:
+  params:
+    - name: output-image
+      value: quay.io/foo/bar
+    - name: build-platforms
+      value:
+        - localhost
+        - linux/arm64
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        # Expected: normal processing (localhost builds in cluster),
+        # bump build to 10Gi, remove sbom stepSpec
+        - name: build
+          computeResources:
+            requests:
+              memory: 4Gi
+            limits:
+              memory: 4Gi
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

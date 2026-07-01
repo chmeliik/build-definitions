@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: other-task-with-sbom
+spec:
+  taskRunSpecs:
+    - pipelineTaskName: build-image
+      stepSpecs:
+        # Expected: replace with build stepSpec (req 12Gi / limit 12Gi),
+        # prefetch-dependencies taskRunSpec untouched
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 12Gi
+            limits:
+              memory: 12Gi
+    - pipelineTaskName: prefetch-dependencies
+      computeResources:
+        requests:
+          cpu: "1"
+          memory: 2Gi
+        limits:
+          memory: 2Gi
+  pipelineSpec:
+    tasks:
+      - name: prefetch-dependencies
+        taskRef:
+          resolver: bundles
+          params:
+            - name: name
+              value: prefetch-dependencies
+      - name: build-image
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

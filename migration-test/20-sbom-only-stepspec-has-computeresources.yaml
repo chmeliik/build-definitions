@@ -1,0 +1,35 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: sbom-only-stepspec-has-computeresources
+spec:
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      computeResources:
+        requests:
+          cpu: "2"
+          memory: 2Gi
+        limits:
+          cpu: "4"
+          memory: 4Gi
+      # Expected: remove stepSpecs entirely (sbom 4Gi <= default 8Gi),
+      # taskRunSpec kept because it still has computeResources
+      stepSpecs:
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 4Gi
+            limits:
+              memory: 4Gi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

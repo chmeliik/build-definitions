@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: sbom-only-request-no-build
+spec:
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        # Expected: replace with build stepSpec (req 12Gi, no limit)
+        # (sbom req 12Gi > default 8Gi → bump request;
+        #  sbom has no limit, defaults to 4Gi < default 8Gi → no limit)
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 12Gi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

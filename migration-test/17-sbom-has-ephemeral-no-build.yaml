@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: sbom-has-ephemeral-no-build
+spec:
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        # Expected: replace with build stepSpec (req 12Gi / limit 12Gi),
+        # sbom's ephemeral-storage must NOT carry over to build
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              memory: 12Gi
+              ephemeral-storage: 10Gi
+            limits:
+              memory: 12Gi
+              ephemeral-storage: 10Gi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2

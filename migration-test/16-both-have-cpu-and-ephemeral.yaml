@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: both-have-cpu-and-ephemeral
+spec:
+  taskRunSpecs:
+    - pipelineTaskName: build-container
+      stepSpecs:
+        # Expected: bump build memory to 10Gi,
+        # preserve cpu and ephemeral-storage,
+        # remove sbom-syft-generate stepSpec
+        - name: build
+          computeResources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+              ephemeral-storage: 20Gi
+            limits:
+              cpu: "4"
+              memory: 4Gi
+              ephemeral-storage: 40Gi
+        - name: sbom-syft-generate
+          computeResources:
+            requests:
+              cpu: "500m"
+              memory: 10Gi
+              ephemeral-storage: 5Gi
+            limits:
+              cpu: "1"
+              memory: 10Gi
+              ephemeral-storage: 10Gi
+  pipelineSpec:
+    tasks:
+      - name: build-container
+        taskRef:
+          resolver: bundles
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: buildah
+            - name: bundle
+              value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2
