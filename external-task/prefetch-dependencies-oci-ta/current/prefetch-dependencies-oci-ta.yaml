@@ -1,2 +1,2 @@
 # renovate: bumpVersion=true
-task_bundle: quay.io/konflux-ci/tekton-catalog/task-prefetch-dependencies-oci-ta:0.3.2@sha256:389aea03a065e8118d36b7acb85b05cd13f6750e7e10ff8a85f270ee65b0167b
+task_bundle: quay.io/konflux-ci/tekton-catalog/task-prefetch-dependencies-oci-ta:0.11.0@sha256:e670e563939f8c5582b64b1f693ae104a3f4cba4dfd651ecbd15f341307c86b9
