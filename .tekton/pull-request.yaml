@@ -30,7 +30,7 @@ spec:
           resolver: bundles
           params:
             - name: bundle
-              value: quay.io/konflux-ci/tekton-catalog/task-git-clone:0.2.4@sha256:bb787553da840e226ea72147a7ccbe8553f887efef2ca24664c9ba2052018adf
+              value: quay.io/konflux-ci/tekton-catalog/task-git-clone:0.2.6@sha256:2f39fc8d18568ecb07d29755c453718f50868b5b2673198b5ed60f1300890dab
             - name: name
               value: git-clone
             - name: kind
@@ -81,7 +81,7 @@ spec:
                 echo $? > partner-tasks-code.out
                 cat partner-tasks.out
             - name: create-comment
-              image: registry.access.redhat.com/ubi9/python-39:9.7-1776644933@sha256:ee2a11266ec90665de33302f74d913d556cf2dc67d68208cada62de15a6859b9
+              image: registry.access.redhat.com/ubi9/python-39:9.8-1792674681@sha256:9579264b9833ae15b567c2f69c1a7b05befca3de38dd974c50a6b87eaea09ec6
               volumeMounts:
                 - name: infra-deployments-pr-creator
                   mountPath: /secrets/deploy-key
