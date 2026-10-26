@@ -117,7 +117,7 @@ spec:
           cpu: 50m
           memory: 64Mi
     - name: package-and-push
-      image: quay.io/konflux-ci/tools@sha256:26497fe44532916fdb8eba81c2ec74fe9c1e374ea4dd71761263d78b0386b80c
+      image: quay.io/konflux-ci/tools@sha256:4edbd2c988ccba348e87ce9e4ba56d9977ef5f189a454d2a44193f08c2f72d27
       workingDir: /var/workdir
       env:
         - name: IMAGE
